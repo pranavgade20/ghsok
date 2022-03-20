@@ -25,7 +25,8 @@ def stream_pods_in_namespace(api: client.CoreV1Api, namespace: str):
                 phase = 'Succeeded or Crashed'
             phase = api.read_namespaced_pod_status(name=pod, namespace=namespace).status.phase
 
-    threads = [threading.Thread(target=stream_pod_logs, args=(api, pod, namespace, latest_logs, i), daemon=True) for i, pod in enumerate(pods)]
+    threads = [threading.Thread(target=stream_pod_logs, args=(api, pod, namespace, latest_logs, i), daemon=True) for
+               i, pod in enumerate(pods)]
     any(t.start() for t in threads)
 
     def print_logs_in_curses(stdscr):
@@ -42,7 +43,25 @@ def stream_pods_in_namespace(api: client.CoreV1Api, namespace: str):
                 stdscr.addstr(0, 0, "unknown command")
 
             for i, log in enumerate(latest_logs):
-                stdscr.addstr(i+1, 0, pods[i] + ' | ' + log)
+                stdscr.addstr(i + 1, 0, pods[i] + ' | ' + log)
             stdscr.refresh()
             inp = stdscr.getch()
+
     curses.wrapper(print_logs_in_curses)
+
+
+def read_namespaced_pod_logs(api: client.CoreV1Api, pod: str, namespace: str) -> str:
+    ret = []
+    try:
+        w = Watch()
+        for e in w.stream(api.read_namespaced_pod_log, name=pod, namespace=namespace):
+            ret.append(e)
+    except client.ApiException:
+        ret.append(api.read_namespaced_pod_status(name=pod, namespace=namespace).status.phase)
+
+    return '\n'.join(ret)
+
+
+def read_namespace_logs(api: client.CoreV1Api, namespace: str) -> dict[str, str]:
+    pods = [x.metadata.name for x in api.list_namespaced_pod(namespace=namespace).items]
+    return {pod: read_namespaced_pod_logs(api, pod, namespace) for pod in pods}
