@@ -1,7 +1,7 @@
 from kubernetes import config, client
 
 from gin_parser import GinParser
-from stream_stdout import stream_pods_in_namespace
+from get_logs import stream_pods_in_namespace
 from submit_job import create_pod_object, create_namespace_and_pods
 
 
