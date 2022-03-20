@@ -1,3 +1,4 @@
+import threading
 from time import sleep
 from typing import Union, Any
 
@@ -44,38 +45,30 @@ def create_or_replace_pod(api, deployment, namespace):
         body=deployment, namespace=namespace
     )
 
-    print("\n[INFO] pod created.\n")
-    print("%s\t%s\t\t\t%s\t%s" % ("NAMESPACE", "NAME", "REVISION", "IMAGE"))
-    print(
-        "%s\t\t%s\t%s\t\t%s\n"
-        % (
-            resp.metadata.namespace,
-            resp.metadata.name,
-            resp.metadata.generation,
-            resp.spec.containers[0].image,
-        )
-    )
+    print(f"[INFO] {resp.metadata.name}(from {resp.spec.containers[0].image}) created in {resp.metadata.namespace}")
 
     return resp
 
 
-def create_namespace_and_pods(api, namespace: str, pods: list):
-    resp = api.list_namespace()
-    if any(namespace == x.metadata.name for x in resp.items):
-        try:
-            print(f"[WARN] deleting namespace `{namespace}` with same name")
-            api.delete_namespace(name=namespace)
-            while any(namespace == x.metadata.name for x in api.list_namespace().items):
-                # waiting for namespace to die
-                sleep(1)
-        except client.ApiException:
-            print("[WARN] can't delete namespace, it was probably deleted elsewhere")
+def create_namespace_and_pods(api, namespace: str, pods: list, reset_namespace=True):
+    if reset_namespace:
+        resp = api.list_namespace()
+        if any(namespace == x.metadata.name for x in resp.items):
+            try:
+                print(f"[WARN] deleting namespace `{namespace}` with same name")
+                api.delete_namespace(name=namespace)
+                while any(namespace == x.metadata.name for x in api.list_namespace().items):
+                    # waiting for namespace to die
+                    sleep(1)
+            except client.ApiException:
+                print("[WARN] can't delete namespace, it was probably deleted already")
     resp = api.create_namespace(
         body=client.V1Namespace(metadata=client.V1ObjectMeta(name=namespace))
     )
 
-    for pod in pods:
-        create_or_replace_pod(api, pod, namespace)
+    threads = [threading.Thread(target=create_or_replace_pod, args=(api, pod, namespace)) for pod in pods]
+    any(t.start() for t in threads)
+    any(t.join() for t in threads)
 
 
 def main():
