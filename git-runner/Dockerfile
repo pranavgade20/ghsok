@@ -5,4 +5,4 @@ COPY setup.sh /
 
 RUN bash /setup.sh
 
-ENTRYPOINT /install-and-run.sh
+ENTRYPOINT bash /install-and-run.sh

@@ -59,5 +59,5 @@ if [ ! -v PY_ENTRYPOINT ]; then
   info "Didn't find PY_ENTRYPOINT, executing main.py"
   PY_ENTRYPOINT='main.py'
 fi
-python $PY_ENTRYPOINT
+python "$PY_ENTRYPOINT"
 info "Executed main script, exiting"

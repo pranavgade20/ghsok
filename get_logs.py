@@ -12,7 +12,7 @@ def stream_pods_in_namespace(api: client.CoreV1Api, namespace: str):
 
     def stream_pod_logs(api: client.CoreV1Api, pod: str, namespace: str, logs_list: [str], index: int):
         phase = 'Pending'
-        while phase != 'Succeeded':
+        while phase != 'Succeeded' and phase != 'Failed':
             while phase != 'Running':
                 phase = api.read_namespaced_pod_status(name=pod, namespace=namespace).status.phase
                 logs_list[index] = phase

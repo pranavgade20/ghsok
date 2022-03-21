@@ -1,7 +1,7 @@
 from kubernetes import config, client
 
 from gin_parser import GinParser
-from get_logs import stream_pods_in_namespace
+from get_logs import stream_pods_in_namespace, read_namespace_logs
 from submit_job import create_pod_object, create_namespace_and_pods
 
 
@@ -27,5 +27,5 @@ if __name__ == '__main__':
     config.load_kube_config()
     v1 = client.CoreV1Api()
 
-    parse_and_submit(v1, 'test.gin', 'localhost:5001/git_pod', 'custom-space', 'git_pod', env={'PY_ENTRYPOINT': 'scripts/train.py'})
+    parse_and_submit(v1, 'test.gin', 'localhost:5001/git_pod', 'custom-space', 'git-pod', env={'GIT_REPO_URL':'https://github.com/pranavgade20/grok/', 'PY_ENTRYPOINT': 'scripts/train.py', 'TERM': 'linux'})
     stream_pods_in_namespace(v1, 'custom-space')

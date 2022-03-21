@@ -17,7 +17,7 @@ def create_pod_object(name: str, container: str, index: int, params: Union[dict,
             requests=kwargs['resources']['requests'] if 'resources' in kwargs and 'requests' in kwargs['resources'] else {"cpu": "100m", "memory": "200Mi"},
             limits=kwargs['resources']['limits'] if 'resources' in kwargs and 'limits' in kwargs['resources'] else {"cpu": "100m", "memory": "200Mi"},
         ),
-        env=[client.V1EnvVar(name="GIN_CONFIG", value=gin_config_from_dict(params) if isinstance(params, dict) else str(params)), *([client.V1EnvVar(name=k, value=v) for k, v in kwargs['env']] if 'env' in kwargs else [])]
+        env=[client.V1EnvVar(name="GIN_CONFIG", value=gin_config_from_dict(params) if isinstance(params, dict) else str(params)), *([client.V1EnvVar(name=k, value=v) for k, v in kwargs['env'].items()] if 'env' in kwargs else [])]
     )
 
     pod = client.V1Pod(
