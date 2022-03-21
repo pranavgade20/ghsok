@@ -19,8 +19,10 @@ def stream_pods_in_namespace(api: client.CoreV1Api, namespace: str):
                 sleep(1)
             w = Watch()
             try:
-                for e in w.stream(api.read_namespaced_pod_log, name=pod, namespace=namespace):
-                    logs_list[index] = e
+                with open(f'logs/{pod}.log', 'w') as pod_file:
+                    for e in w.stream(api.read_namespaced_pod_log, name=pod, namespace=namespace):
+                        logs_list[index] = e
+                        pod_file.write(e + '\n')
             except client.ApiException as ex:
                 phase = 'Succeeded or Crashed'
             phase = api.read_namespaced_pod_status(name=pod, namespace=namespace).status.phase
@@ -43,7 +45,7 @@ def stream_pods_in_namespace(api: client.CoreV1Api, namespace: str):
                 stdscr.addstr(0, 0, "unknown command")
 
             for i, log in enumerate(latest_logs):
-                stdscr.addstr(i + 1, 0, pods[i] + ' | ' + log)
+                stdscr.addstr(i + 1, 0, pods[i] + ' | ' + log[log.rfind("\r")+1:])  # carriage returns mess up the output
             stdscr.refresh()
             inp = stdscr.getch()
 
