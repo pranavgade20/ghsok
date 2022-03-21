@@ -1,3 +1,4 @@
 #!/bin/bash
 
-apt-get install -y git
+apt-get update
+apt-get install -y git wget
