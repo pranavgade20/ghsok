@@ -19,10 +19,10 @@ def stream_pods_in_namespace(api: client.CoreV1Api, namespace: str):
                 sleep(1)
             w = Watch()
             try:
-                with open(f'logs/{pod}.log', 'w') as pod_file:
-                    for e in w.stream(api.read_namespaced_pod_log, name=pod, namespace=namespace):
-                        logs_list[index] = e
-                        pod_file.write(e + '\n')
+                # with open(f'logs/{pod}.log', 'w') as pod_file:
+                for e in w.stream(api.read_namespaced_pod_log, name=pod, namespace=namespace):
+                    logs_list[index] = e
+                    # pod_file.write(e + '\n')
             except client.ApiException as ex:
                 phase = 'Succeeded or Crashed'
             phase = api.read_namespaced_pod_status(name=pod, namespace=namespace).status.phase
